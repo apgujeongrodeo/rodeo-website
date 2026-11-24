@@ -354,6 +354,10 @@ nav.main{gap:24px}nav.main a{white-space:nowrap;font-size:14.5px}.hd-r{gap:8px}.
 .nempty b{display:block;font:300 clamp(56px,9vw,110px)/1 var(--latin);font-style:italic;color:var(--gold-ink)}.nempty p{color:var(--soft)}
 .opinion{margin:28px 0;background:#2A1E17;color:#F4ECDF;border-radius:12px;padding:24px 26px}
 .opinion .who{font:italic 400 18px var(--latin);color:#D2B07A;margin:0 0 8px}.opinion p{margin:0;font:400 18px/1.7 var(--serif)}
+.hero .place{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font:500 15px/1.4 var(--sans);font-style:normal;color:var(--soft);margin:0 0 26px}
+.hero .place b{font:600 13px/1 var(--sans);letter-spacing:.14em;color:#FCF9F4;background:#2A1E17;padding:7px 13px;border-radius:999px}
+.hero h1{font:700 clamp(28px,3.6vw,54px)/1.38 "Gowun Batang",var(--serif)!important;letter-spacing:-.02em}
+.hero h1 .l:nth-child(3)>span{font-weight:700}
 .hero>.marq{margin-top:clamp(48px,6vw,80px)}
 .streetph{display:block;position:relative;margin-top:clamp(40px,6vw,72px);height:clamp(260px,42vw,560px);background:var(--bg) center 40%/cover no-repeat;color:#fff;text-decoration:none}
 .streetph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(20,14,10,.55))}

@@ -58,7 +58,7 @@ R.home = async () => {
   if (hs.background) { const sp = $('#streetPh'); sp.style.setProperty('--bg', `url("${src(hs.background)}")`); sp.setAttribute('aria-label', (hs.background_alt || '압구정로데오 거리') + ' · 로데오의 기록 보기'); sp.hidden = false; }
   const live = (ls.items || []).filter(listingReady);
   $('#homeList').innerHTML = live.slice(0, 3).map(lCard).join(''); $('#homeListSec').hidden = !live.length;
-  $('#hEyebrow').textContent = h.hero_eyebrow || '';
+  { const [a, ...b] = String(h.hero_eyebrow || '').split(/\s+—\s+/); $('#hEyebrow').innerHTML = b.length ? `<b>${esc(a.toUpperCase())}</b><span>${esc(b.join(' — '))}</span>` : esc(a); }
   $('#hTitle').innerHTML = (h.hero_title || []).map(l => `<span class="l"><span>${esc(l)}</span></span>`).join('');
   $('#hLead').textContent = h.hero_lead || '';
   const mq = esc(h.marquee || '').replace(/ — /g, '<em>—</em>');
