@@ -23,6 +23,8 @@ const clean = html => {
 const load = name => fetch(`content/${name}.json`, {cache: 'no-cache'}).then(r => { if (!r.ok) throw new Error(name); return r.json(); });
 const fail = msg => { const m = $('main'); if (m) m.insertAdjacentHTML('afterbegin', `<p class="loadfail" role="alert">${esc(msg)}</p>`); };
 const FIELD_ETC = {key: 'etc', name: '기타'};
+const SGROUPS = [{k: 'seek', t: '자리를 구하는 분', s: '매장·사무실·병의원 자리를\n찾고 계신 분'}, {k: 'own', t: '건물을 가진 분', s: '상가·건물을 맡기거나\n사고팔려는 분'}, {k: 'decide', t: '결정 전이라면', s: '어디서 시작할지\n모르겠다면'}];
+const sgroup = items => SGROUPS.map(g => ({...g, items: items.filter(x => (x.group || 'seek') === g.k)})).filter(g => g.items.length);
 const TYPE = {shop: '상가', office: '사무실', food: '음식점·카페', clinic: '병의원'};
 
 /* ---------- 공통: 헤더·메뉴·사이트 정보 ---------- */
@@ -68,7 +70,8 @@ R.home = async () => {
   $('#facts').innerHTML = (h.facts || []).map(f => `<div><b>${esc(f.value)}</b><span>${esc(f.label)}</span></div>`).join('');
   $('#mosaic').innerHTML = img(h.host_image, h.host_image_alt, 'img m1') + img(h.office_image, h.office_image_alt, 'img m2');
   $('#belief').textContent = h.belief || '';
-  $('#homeSvc').innerHTML = (sv.items || []).map((s, i) => `<li><a href="services.html#${esc(s.key)}"><span class="no">N°${i+1}</span><h3>${esc(s.name)}</h3><p>${esc(s.who)}</p><span class="ar" aria-hidden="true">→</span></a></li>`).join('');
+  if (h.svc_title) $('#svcTitle').textContent = h.svc_title; $('#svcLead').textContent = h.svc_lead || '';
+  { let n = 0; $('#homeSvc').innerHTML = sgroup(sv.items || []).map(g => `<div class="sgrp"><p class="gh">${esc(g.t)}<small>${br(g.s)}</small></p><ul class="svc">${g.items.map(s => `<li><a href="services.html#${esc(s.key)}"><span class="no">N°${++n}</span><h3>${esc(s.name)}${s.key === 'vacancy' ? '<span class="new">NEW</span>' : ''}</h3><p>${esc(s.who)}</p><span class="ar" aria-hidden="true">→</span></a></li>`).join('')}</ul></div>`).join(''); }
   const cases = (pj.items || []).filter(p => p.published);
   $('#homeCases').innerHTML = cases.length ? cases.slice(0, 3).map(caseCard).join('') : '';
   $('#homeCasesSec').hidden = !cases.length;
@@ -155,13 +158,14 @@ R.services = async () => {
   $('#pTitle').innerHTML = br(s.title); $('#pLead').textContent = s.lead || '';
   const items = s.items || [];
   $('#jump').innerHTML = items.map(x => `<a href="#${esc(x.key)}">${esc(x.name)}</a>`).join('');
-  $('#svcList').innerHTML = items.map((x, i) => `<article class="svcd" id="${esc(x.key)}">
+  let n = 0;
+  $('#svcList').innerHTML = sgroup(items).map(g => `<h2 class="svgh">${esc(g.t)}<small>${esc(g.s.replace(/\n/g, ' '))}</small></h2>` + g.items.map(x => { const i = n++; return `<article class="svcd" id="${esc(x.key)}">
     <div class="svcd-h"><span class="no">N°${i+1}</span><h2>${esc(x.name)}</h2></div>
     ${x.image ? `<div class="svcimg">${img(x.image, x.name, 'img')}</div>` : ''}
     <dl><div><dt>누가 이용하나요</dt><dd>${esc(x.who)}</dd></div>
     <div><dt>어떤 조건을 확인하나요</dt><dd><ul>${(x.checks || []).map(c => `<li>${esc(c)}</li>`).join('')}</ul></dd></div>
     <div><dt>상담할 때 알려주세요</dt><dd>${esc(x.tell)}</dd></div></dl>
-    <a class="btn cta" href="contact.html#${esc(x.key)}">${esc(x.name)} 문의하기</a></article>`).join('');
+    <a class="btn cta" href="contact.html#${esc(x.key)}">${esc(x.name)} 문의하기</a></article>`; }).join('')).join('');
   scrollToHash();
 };
 

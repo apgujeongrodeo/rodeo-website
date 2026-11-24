@@ -39,6 +39,8 @@ content:
       - { name: hero_title, label: 첫 화면 큰 제목 (줄마다 한 칸), type: string, list: true }
       - { name: hero_lead, label: 첫 화면 설명, type: text }
       - { name: marquee, label: 흐르는 띠 문구, type: string }
+      - { name: svc_title, label: 서비스 묶음 제목, type: string }
+      - { name: svc_lead, label: 서비스 묶음 설명, type: string }
       - { name: host_title, label: 소개 제목, type: text }
       - { name: host_text, label: 소개 글, type: text }
       - { name: host_image, label: 소개 큰 사진, type: image }
@@ -90,6 +92,14 @@ content:
         list: true
         fields:
           - { name: key, label: 영문 키 (문의 분야 연결용, 바꾸지 마세요), type: string }
+          - name: group
+            label: 묶음
+            type: select
+            options:
+              values:
+                - { value: seek, label: 자리를 구하는 분 }
+                - { value: own, label: 건물을 가진 분 }
+                - { value: decide, label: 결정 전이라면 }
           - { name: name, label: 서비스 이름, type: string }
           - { name: who, label: 누가 이용하나요, type: text }
           - { name: checks, label: 확인하는 조건, type: string, list: true }
@@ -97,7 +107,7 @@ content:
           - { name: image, label: 사진 (선택), type: image }
 
   - name: consulting
-    label: 상권·계약 컨설팅
+    label: 상권·입지 컨설팅
     type: file
     path: content/consulting.json
     fields:
