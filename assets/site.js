@@ -313,6 +313,88 @@ R.contact = async () => {
   });
 };
 
+
+/* ---------- NEWS ---------- */
+const NCAT = {policy: '정책·법률', incident: '사건·사고', market: '시장·시세', presale: '신규 분양', rodeo: '로데오 상권'};
+R.news = async () => {
+  const d = await load('news');
+  $('#newsIntro').textContent = d.intro || '';
+  const items = (d.items || []).filter(x => x.published && x.slug && x.title).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  let cat = 'all';
+  const cats = ['all', ...Object.keys(NCAT).filter(k => items.some(x => x.category === k))];
+  $('#newsCats').innerHTML = cats.length > 2 ? cats.map(k => `<button type="button" data-c="${k}" aria-pressed="${k === cat}">${k === 'all' ? '전체' : NCAT[k]}</button>`).join('') : '';
+  const list = () => {
+    const xs = items.filter(x => cat === 'all' || x.category === cat);
+    $('#nlist').innerHTML = xs.map(x => `<li class="nitem"><a href="#${esc(x.slug)}"><time datetime="${esc(x.date)}">${esc(String(x.date || '').replace(/-/g, '.'))}</time><div><span class="cat ${esc(x.category)}">${esc(NCAT[x.category] || '')}</span><h3>${esc(x.title)}</h3><p>${esc(x.summary)}</p>${x.opinion ? `<p class="op">${esc(x.opinion_by || '현장의 한마디')}: ${esc(String(x.opinion).slice(0, 70))}${String(x.opinion).length > 70 ? '…' : ''}</p>` : ''}</div><span class="ar" aria-hidden="true">→</span></a></li>`).join('');
+    $('#newsEmpty').hidden = items.length > 0;
+  };
+  $('#newsCats').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cat = b.dataset.c; $$('#newsCats button').forEach(x => x.setAttribute('aria-pressed', x === b)); list(); });
+  const show = () => {
+    const x = items.find(i => i.slug === decodeURIComponent(location.hash.slice(1)));
+    $('#newsList').hidden = !!x; $('#phead').hidden = !!x; $('#newsArticle').hidden = !x;
+    if (!x) { document.title = 'NEWS · 로데오공인중개사무소'; return; }
+    const srcs = (x.sources || []).filter(s => s.name);
+    $('#newsArticle').innerHTML = `<p class="crumb"><a href="news.html">NEWS</a> / ${esc(NCAT[x.category] || '')}</p>
+      <h1 class="atitle" tabindex="-1">${esc(x.title)}</h1><p class="lead"><time datetime="${esc(x.date)}">${esc(String(x.date || '').replace(/-/g, '.'))}</time> · ${esc(x.summary)}</p>
+      ${x.body ? `<div class="prose abody">${clean(x.body)}</div>` : ''}
+      ${x.opinion ? `<aside class="opinion"><p class="who">${esc(x.opinion_by || '현장의 한마디')}</p><p>${br(x.opinion)}</p></aside>` : ''}
+      ${srcs.length ? `<div class="sources"><h3>출처</h3><ul>${srcs.map(s => `<li>${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>` : esc(s.name)}${s.date ? ` · ${esc(s.date)}` : ''}</li>`).join('')}</ul></div>` : ''}
+      <p class="note">기사와 발표 내용을 요약하고 견해를 덧붙인 글입니다. 법률·세무 판단은 전문가 확인이 필요합니다.</p>
+      <div class="acts"><a class="btn" href="news.html">목록으로</a><a class="btn cta" href="contact.html#consult">이 소식으로 상담하기</a></div>`;
+    document.title = `${x.title} · NEWS · 로데오공인중개사무소`;
+    scrollTo(0, 0); $('#newsArticle h1').focus({preventScroll: true});
+  };
+  list(); addEventListener('hashchange', show); show();
+};
+
+/* ---------- Q&A ---------- */
+const qaItem = (q, a, i, by) => `<div class="qa" style="animation-delay:${matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : i * 70}ms"><button type="button" aria-expanded="false"><span class="qm">Q</span><span>${esc(q)}</span><span class="pm" aria-hidden="true"></span></button><div class="ans" role="region"><div><p>${br(a)}</p>${by ? `<p class="by">${esc(by)}</p>` : ''}</div></div></div>`;
+const bindQa = root => root.addEventListener('click', e => { const b = e.target.closest('.qa > button'); if (!b) return; const it = b.parentElement, o = !it.classList.contains('open'); it.classList.toggle('open', o); b.setAttribute('aria-expanded', o); });
+R.qna = async () => {
+  const d = await load('qna');
+  $('#qnaIntro').textContent = d.intro || '';
+  const groups = (d.faq || []).filter(g => (g.items || []).length);
+  let gi = 0;
+  const drawFaq = () => {
+    $('#qtabs').innerHTML = groups.map((g, i) => `<button type="button" role="tab" aria-selected="${i === gi}" data-i="${i}">${esc(g.group)}</button>`).join('');
+    $('#faq').innerHTML = (groups[gi] ? groups[gi].items : []).map((x, i) => qaItem(x.q, x.a, i)).join('');
+  };
+  $('#qtabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; gi = +b.dataset.i; drawFaq(); });
+  bindQa($('#faq')); bindQa($('#answered')); drawFaq();
+  const ans = (d.answered || []).filter(x => x.published && x.q && x.a).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  $('#answeredSec').hidden = !ans.length;
+  $('#answered').innerHTML = ans.map((x, i) => qaItem(x.q, x.a, i, [x.category, x.answered_by, x.date].filter(Boolean).join(' · '))).join('');
+
+  const s = await site;
+  const endpoint = String(s.form_endpoint || '').trim(), online = /^https:\/\//.test(endpoint);
+  if (!online) $('#qMode').textContent = '온라인 질문 접수를 연결하는 중입니다. 지금은 카카오톡이나 전화로 문의해 주세요.';
+  const st = (t, k) => { const el = $('#qStatus'); el.hidden = !t; el.textContent = t || ''; el.className = 'status' + (k ? ' ' + k : ''); };
+  let sending = false;
+  $('#qform').addEventListener('submit', async e => {
+    e.preventDefault(); if (sending) return;
+    const q = $('#qtext').value.trim(), ph = $('#qphone').value.replace(/\s/g, '');
+    const okQ = !!q, okP = !ph || /^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(ph), okA = !ph && !$('#qnick').value.trim() || $('#qagree').checked;
+    $('#fQ').classList.toggle('bad', !okQ); $('#fQPhone').classList.toggle('bad', !okP); $('#fQAgree').classList.toggle('bad', !okA);
+    if (!okQ) return $('#qtext').focus(); if (!okP) return $('#qphone').focus(); if (!okA) return $('#qagree').focus();
+    if (!online) return st('온라인 질문 접수가 아직 연결되지 않아 저장되지 않았습니다. 카카오톡이나 전화로 문의해 주세요.', 'bad');
+    sending = true; $('#qBtn').disabled = true; $('#qBtn').textContent = '보내는 중…'; st('질문을 보내고 있습니다.');
+    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 15000);
+    try {
+      const r = await fetch(endpoint, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, signal: ctrl.signal, body: JSON.stringify({
+        type: 'question', field: $('#qfield').value, question: q, nickname: $('#qnick').value.trim(), phone: ph,
+        public_ok: $('#qpublic').checked, consent: $('#qagree').checked, consent_version: s.consent_version || '', page: location.pathname, website: $('#qwebsite').value})});
+      const res = await r.json();
+      if (res.ok) {
+        $('#qform').querySelectorAll('.f,.grid2,.hint,#qBtn,.agree,.hp').forEach(n => n.hidden = true); st('');
+        $('#qDoneText').textContent = `${res.id ? `접수번호 ${res.id} · ` : ''}${ph ? '확인 후 남겨 주신 연락처로 답변드립니다.' : '답변은 공개 동의 여부에 따라 이 페이지에 올라갈 수 있습니다. 직접 답변을 받으시려면 카카오톡이나 전화로 문의해 주세요.'}`;
+        $('#qDone').hidden = false; $('#qDone').focus();
+      } else if (res.error === 'too_soon') st('조금 전에 질문이 접수되었습니다. 잠시 후 다시 시도해 주세요.', 'bad');
+      else throw new Error(res.error || 'server');
+    } catch { st('질문을 보내지 못했습니다. 입력하신 내용은 그대로 있습니다. 다시 시도하시거나 카카오톡으로 문의해 주세요.', 'bad'); }
+    finally { clearTimeout(t); sending = false; $('#qBtn').disabled = false; $('#qBtn').textContent = '질문 보내기'; }
+  });
+};
+
 function scrollToHash() { const id = decodeURIComponent(location.hash.slice(1)); const el = id && document.getElementById(id); if (el) requestAnimationFrame(() => el.scrollIntoView({block: 'start'})); }
 
 if (R[PAGE]) R[PAGE]().catch(err => { console.error(err); fail('내용을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.'); });

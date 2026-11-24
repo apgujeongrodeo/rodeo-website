@@ -159,7 +159,7 @@ content:
           - { name: checkpoints, label: 현장에서 살펴볼 포인트, type: string, list: true }
 
   - name: insights
-    label: 상권 인사이트 (글)
+    label: 상권 인사이트 (상권 분석·칼럼)
     type: file
     path: content/insights.json
     fields:
@@ -228,3 +228,71 @@ content:
           - { name: consent, label: "고객에게 상호·업종 공개 동의를 받았습니다 (문자·메일 등 기록 보관)", type: boolean }
           - { name: note, label: "한 줄 설명 (선택. 금액·조건·개인 이름 금지)", type: string }
           - { name: published, label: 사이트에 공개, type: boolean }
+
+  - name: news
+    label: NEWS (부동산 소식)
+    type: file
+    path: content/news.json
+    fields:
+      - { name: intro, label: 코너 소개 문장, type: text }
+      - name: items
+        label: 소식 목록 (기사 문장을 그대로 옮기지 말고 요약 + 출처 필수)
+        type: object
+        list: true
+        fields:
+          - { name: slug, label: "주소용 영문 이름 (예: 2026-11-30-rent-law)", type: string }
+          - { name: published, label: 사이트에 공개, type: boolean }
+          - { name: date, label: 게시일, type: date }
+          - name: category
+            label: 분류
+            type: select
+            options:
+              values: [ { value: policy, label: 정책·법률 }, { value: incident, label: 사건·사고 }, { value: market, label: 시장·시세 }, { value: presale, label: 신규 분양 }, { value: rodeo, label: 로데오 상권 } ]
+          - { name: title, label: 제목, type: string }
+          - { name: summary, label: "핵심 요약 (2~3문장, 직접 쓴 문장으로)", type: text }
+          - name: body
+            label: 본문 (선택)
+            type: rich-text
+            options:
+              format: html
+          - { name: opinion, label: "현장의 한마디 (견해)", type: text }
+          - { name: opinion_by, label: "한마디 작성자 (예: 김태욱 공인중개사)", type: string }
+          - name: sources
+            label: 출처 (최소 1개)
+            type: object
+            list: true
+            fields:
+              - { name: name, label: "출처 이름 (예: 국토교통부 보도자료)", type: string }
+              - { name: url, label: 링크, type: string }
+              - { name: date, label: 발표일, type: string }
+
+  - name: qna
+    label: Q&A (자주 묻는 질문·답변)
+    type: file
+    path: content/qna.json
+    fields:
+      - { name: intro, label: 코너 소개 문장, type: text }
+      - name: faq
+        label: 자주 묻는 질문 (묶음별)
+        type: object
+        list: true
+        fields:
+          - { name: group, label: "묶음 이름 (예: 로데오 상권)", type: string }
+          - name: items
+            label: 질문들
+            type: object
+            list: true
+            fields:
+              - { name: q, label: 질문, type: string }
+              - { name: a, label: 답변, type: text }
+      - name: answered
+        label: 방문자 질문에 대한 답변 (질문자 이름·연락처는 쓰지 마세요)
+        type: object
+        list: true
+        fields:
+          - { name: published, label: 사이트에 공개 (질문자가 익명 공개에 동의한 경우만), type: boolean }
+          - { name: date, label: 답변일, type: date }
+          - { name: category, label: 분야, type: string }
+          - { name: q, label: "질문 (개인정보·상호 등을 지우고 다듬어서)", type: text }
+          - { name: a, label: 답변, type: text }
+          - { name: answered_by, label: 답변자, type: string }

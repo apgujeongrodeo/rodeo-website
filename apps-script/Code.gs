@@ -21,6 +21,8 @@ const CONSENT_VERSION = '2026-11-24'; // 동의 문구 버전 (문구를 바꾸�
 const HEADERS = ['접수번호', '접수일시', '기업명', '담당자', '연락처', '문의 분야', '상담 내용',
                  '개인정보 동의', '동의 문구 버전', '접수 페이지', '처리 상태', '완료일', '메모'];
 const COL = Object.fromEntries(HEADERS.map((h, i) => [h, i + 1]));
+const Q_SHEET = '질문';
+const Q_HEADERS = ['접수번호', '접수일시', '질문 분야', '질문', '이름·닉네임', '연락처', '익명 공개 동의', '개인정보 동의', '동의 문구 버전', '처리 상태', '완료일', '메모'];
 const LIMITS = { company: 80, name: 40, phone: 20, field: 30, message: 2000, page: 200 };
 
 // ===== 처음 한 번 실행: 시트 머리글, 자동 삭제 예약 =====
@@ -35,6 +37,13 @@ function setup() {
     const rule = SpreadsheetApp.newDataValidation().requireValueInList(['접수', '연락 완료', '완료'], true).build();
     sh.getRange(2, COL['처리 상태'], sh.getMaxRows() - 1, 1).setDataValidation(rule);
   }
+  let qs = ss.getSheetByName(Q_SHEET);
+  if (!qs) qs = ss.insertSheet(Q_SHEET);
+  if (qs.getLastRow() === 0) {
+    qs.appendRow(Q_HEADERS); qs.setFrozenRows(1); qs.getRange(1, 1, 1, Q_HEADERS.length).setFontWeight('bold');
+    const rule2 = SpreadsheetApp.newDataValidation().requireValueInList(['접수', '답변 완료', '완료'], true).build();
+    qs.getRange(2, 10, qs.getMaxRows() - 1, 1).setDataValidation(rule2);
+  }
   ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('purgeExpired').timeBased().everyDays(1).atHour(3).create();
   ScriptApp.newTrigger('onEditStamp').forSpreadsheet(ss).onEdit().create();
@@ -47,6 +56,7 @@ function doPost(e) {
 
     // 자동 입력 방지: 사람에게는 보이지 않는 칸이 채워져 있으면 저장하지 않음
     if (d.website) return out({ ok: true });
+    if (d.type === 'question') return saveQuestion(d);
 
     const v = {
       company: clean(d.company, LIMITS.company),
@@ -102,24 +112,58 @@ function doPost(e) {
   }
 }
 
+// ===== Q&A 질문 접수 ('질문' 탭) =====
+function saveQuestion(d) {
+  const v = { field: clean(d.field, 30), question: clean(d.question, 1500), nickname: clean(d.nickname, 40), phone: clean(d.phone, 20) };
+  if (!v.question) return out({ ok: false, error: 'invalid', fields: ['question'] });
+  if (v.phone && !/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(v.phone)) return out({ ok: false, error: 'invalid', fields: ['phone'] });
+  if ((v.phone || v.nickname) && d.consent !== true) return out({ ok: false, error: 'invalid', fields: ['consent'] });
+  const cache = CacheService.getScriptCache();
+  const key = 'q_' + (v.phone.replace(/\D/g, '') || Utilities.base64Encode(v.question.slice(0, 40)));
+  if (cache.get(key)) return out({ ok: false, error: 'too_soon' });
+  cache.put(key, '1', 60);
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  let id;
+  try {
+    const sh = book().getSheetByName(Q_SHEET);
+    const now = new Date();
+    id = 'Q' + Utilities.formatDate(now, 'Asia/Seoul', 'yyMMdd') + '-' + Utilities.getUuid().slice(0, 4).toUpperCase();
+    sh.appendRow([id, now, safe(v.field), safe(v.question), safe(v.nickname), safe(v.phone), d.public_ok === true ? '동의' : '미동의',
+                  (v.phone || v.nickname) ? '동의' : '해당 없음', CONSENT_VERSION, '접수', '', '']);
+  } finally { lock.releaseLock(); }
+  try {
+    MailApp.sendEmail({ to: NOTIFY_EMAILS, subject: `[홈페이지 Q&A 질문] ${v.field || ''}`,
+      body: [`접수번호: ${id}`, `분야: ${v.field || '-'}`, `이름·닉네임: ${v.nickname || '-'}`, `연락처: ${v.phone || '-'}`, `익명 공개 동의: ${d.public_ok === true ? '예' : '아니오'}`, '', v.question, '',
+             '답변을 공개하려면 Pages CMS > Q&A > 방문자 질문에 대한 답변에 개인정보를 지우고 올려 주세요.'].join('\n') });
+  } catch (mailErr) { console.error(mailErr); }
+  return out({ ok: true, id });
+}
+
 // 접수 주소를 브라우저로 열었을 때 확인용
 function doGet() { return out({ ok: true, service: 'rodeo-inquiry' }); }
 
 // ===== '처리 상태'가 '완료'가 되면 완료일 기록 =====
 function onEditStamp(e) {
   const r = e.range, sh = r.getSheet();
-  if (sh.getName() !== SHEET_NAME || r.getColumn() !== COL['처리 상태'] || r.getRow() < 2) return;
-  const done = sh.getRange(r.getRow(), COL['완료일']);
+  const isQ = sh.getName() === Q_SHEET;
+  const stCol = isQ ? 10 : COL['처리 상태'], doneCol = isQ ? 11 : COL['완료일'];
+  if ((sh.getName() !== SHEET_NAME && !isQ) || r.getColumn() !== stCol || r.getRow() < 2) return;
+  const done = sh.getRange(r.getRow(), doneCol);
   if (r.getValue() === '완료' && !done.getValue()) done.setValue(new Date());
   if (r.getValue() !== '완료') done.clearContent();
 }
 
 // ===== 보유 기간이 지난 줄 삭제 =====
 function purgeExpired() {
-  const sh = book().getSheetByName(SHEET_NAME);
+  purgeSheet(SHEET_NAME, COL['완료일']);
+  purgeSheet(Q_SHEET, 11);
+}
+function purgeSheet(name, doneCol) {
+  const sh = book().getSheetByName(name);
+  if (!sh) return;
   const last = sh.getLastRow();
   if (last < 2) return;
-  const doneDates = sh.getRange(2, COL['완료일'], last - 1, 1).getValues();
+  const doneDates = sh.getRange(2, doneCol, last - 1, 1).getValues();
   const limit = Date.now() - RETENTION_DAYS * 864e5;
   for (let i = doneDates.length - 1; i >= 0; i--) {
     const d = doneDates[i][0];
