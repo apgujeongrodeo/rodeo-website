@@ -16,7 +16,7 @@
   "broker_title": "본부장",
   "email": "rodeo.apgujeon@gmail.com",
   "privacy_officer": "김태욱 (본부장) · ktu6837@gmail.com",
-  "form_endpoint": "",
+  "form_endpoint": "https://script.google.com/macros/s/AKfycbwHbmnjcaafCGk8RT8s_Lz6kRYrp4kVneu5TOSP2sSbhelcwmZjjLCMC992dmdklbY-Rw/exec",
   "privacy_retention": "상담 완료 후 1년",
   "consent_version": "2026-11-24"
 }

@@ -13,7 +13,9 @@
 
 // ===== 설정 =====
 const NOTIFY_EMAILS = 'realtor90096837@gmail.com'; // 알림 받을 메일 (여러 개는 쉼표로 구분)
+const SHEET_ID = '1HlojkcIJTwd_25743Jpzs87izLVMDBpQP_Q2XKN_3Xg'; // 로데오 홈페이지 상담 접수 시트
 const SHEET_NAME = '접수';
+function book() { return SpreadsheetApp.openById(SHEET_ID); }
 const RETENTION_DAYS = 365;          // 상담 완료 후 보유 기간
 const CONSENT_VERSION = '2026-11-24'; // 동의 문구 버전 (문구를 바꾸면 홈페이지와 함께 수정)
 const HEADERS = ['접수번호', '접수일시', '기업명', '담당자', '연락처', '문의 분야', '상담 내용',
@@ -23,7 +25,7 @@ const LIMITS = { company: 80, name: 40, phone: 20, field: 30, message: 2000, pag
 
 // ===== 처음 한 번 실행: 시트 머리글, 자동 삭제 예약 =====
 function setup() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = book();
   let sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) sh = ss.insertSheet(SHEET_NAME);
   if (sh.getLastRow() === 0) {
@@ -72,7 +74,7 @@ function doPost(e) {
     lock.waitLock(10000);
     let id;
     try {
-      const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+      const sh = book().getSheetByName(SHEET_NAME);
       const now = new Date();
       id = Utilities.formatDate(now, 'Asia/Seoul', 'yyMMdd') + '-' + Utilities.getUuid().slice(0, 4).toUpperCase();
       sh.appendRow([id, now, safe(v.company), safe(v.name), safe(v.phone), safe(v.field), safe(v.message),
@@ -114,7 +116,7 @@ function onEditStamp(e) {
 
 // ===== 보유 기간이 지난 줄 삭제 =====
 function purgeExpired() {
-  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  const sh = book().getSheetByName(SHEET_NAME);
   const last = sh.getLastRow();
   if (last < 2) return;
   const doneDates = sh.getRange(2, COL['완료일'], last - 1, 1).getValues();
