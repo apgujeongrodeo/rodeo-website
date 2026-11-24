@@ -188,3 +188,43 @@ content:
               - { name: name, label: 출처 이름, type: string }
               - { name: url, label: 링크, type: string }
               - { name: as_of, label: 기준 시점, type: string }
+
+  - name: history
+    label: 회사 연혁·거래 기록
+    type: file
+    path: content/history.json
+    fields:
+      - { name: intro, label: 코너 소개 문장, type: text }
+      - name: founded
+        label: 시작 기록
+        type: object
+        fields:
+          - { name: year, label: 연도, type: string }
+          - { name: text, label: 내용, type: string }
+      - name: items
+        label: 거래 기록 (공개 전 체크리스트를 꼭 확인하세요)
+        type: object
+        list: true
+        fields:
+          - { name: date, label: 계약 연월 (일자는 1일로 두어도 됩니다), type: date }
+          - name: deal_type
+            label: 거래 유형
+            type: select
+            options:
+              values: [ { value: lease, label: 임대 }, { value: sale, label: 매매 }, { value: sublease, label: 전대 }, { value: etc, label: 기타 } ]
+          - name: property
+            label: 용도
+            type: select
+            options:
+              values: [ { value: shop, label: 상가 }, { value: office, label: 사무실 }, { value: clinic, label: 병의원 }, { value: building, label: 건물 }, { value: etc, label: 기타 } ]
+          - { name: industry, label: "업종 (예: 뷰티 브랜드, 패션 편집숍, 카페)", type: string }
+          - { name: area, label: "공개 위치 (동·거리 수준만. 예: 압구정로데오 이면 골목. 번지·층·호수 금지)", type: string }
+          - name: disclosure
+            label: 공개 범위
+            type: select
+            options:
+              values: [ { value: industry, label: "업종만 공개 (기본)" }, { value: name, label: "상호명 공개 (고객 서면 동의 필수)" }, { value: hidden, label: 사이트에 표시 안 함 } ]
+          - { name: brand_name, label: "상호명 (상호명 공개 + 동의 확인일 때만 표시)", type: string }
+          - { name: consent, label: "고객에게 상호·업종 공개 동의를 받았습니다 (문자·메일 등 기록 보관)", type: boolean }
+          - { name: note, label: "한 줄 설명 (선택. 금액·조건·개인 이름 금지)", type: string }
+          - { name: published, label: 사이트에 공개, type: boolean }

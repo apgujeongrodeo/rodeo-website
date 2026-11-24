@@ -81,7 +81,70 @@ R.about = async () => {
   $('#methods').innerHTML = (a.methods || []).map((m, i) => `<article><span class="no">N°${i+1}</span><h3>${esc(m.title)}</h3><p>${esc(m.text)}</p></article>`).join('');
   $('#profTitle').textContent = a.profile_title || ''; $('#profText').innerHTML = paras(a.profile_text);
   $('#profImg').innerHTML = img(a.profile_image, a.profile_image_alt, 'img tall');
+  record();
 };
+
+/* ---------- 회사소개 · 로데오의 기록 ---------- */
+const DEAL = {lease: '임대', sale: '매매', sublease: '전대', etc: '기타'};
+const PROP = {shop: '상가', office: '사무실', clinic: '병의원', building: '건물', etc: '기타'};
+// 디자인 확인용 예시 (주소 끝이 #record-demo 일 때만 표시, 실제 거래 아님)
+const DEMO = [
+  ['2026-10', 'lease', 'shop', '뷰티 브랜드', '압구정로데오 메인 거리', 'name', '예시 뷰티 A', '1층 플래그십 매장'],
+  ['2026-10', 'lease', 'office', '패션 브랜드 본사', '신사동 도산대로 이면', 'industry'],
+  ['2026-07', 'sale', 'building', '근린생활시설', '압구정로데오 이면 골목', 'industry'],
+  ['2026-04', 'lease', 'clinic', '피부과 의원', '신사동', 'industry', '', '2층 개원'],
+  ['2026-02', 'lease', 'shop', '카페', '압구정로데오 이면 골목', 'name', '예시 카페 B'],
+  ['2025-11', 'lease', 'shop', '패션 편집숍', '압구정로데오 메인 거리', 'industry'],
+  ['2025-08', 'sublease', 'shop', '팝업 스토어', '압구정로데오', 'industry', '', '3개월 단기'],
+  ['2025-03', 'lease', 'office', '디자인 스튜디오', '신사동', 'industry'],
+  ['2024-12', 'sale', 'shop', '상가', '압구정로데오 이면 골목', 'industry'],
+  ['2024-06', 'lease', 'shop', '뷰티 브랜드', '압구정로데오 메인 거리', 'industry'],
+].map(([d, deal_type, property, industry, area, disclosure, brand_name = '', note = '']) => ({date: d + '-01', deal_type, property, industry, area, disclosure, brand_name, consent: true, note, published: true}));
+
+async function record() {
+  const sec = $('#record'); if (!sec) return;
+  const h = await load('history').catch(() => ({items: []}));
+  const demo = location.hash === '#record-demo';
+  $('#recIntro').textContent = h.intro || '';
+  $('#recDemo').hidden = !demo;
+  if (h.founded) { $('#foundYear').textContent = h.founded.year || ''; $('#foundText').textContent = h.founded.text || ''; }
+  // 공개 규칙: 공개 체크 + '표시 안 함' 아님. 상호명은 '상호명 공개' + 동의 확인일 때만. 금액 칸은 아예 없음.
+  const items = (demo ? DEMO : (h.items || [])).filter(x => x.published && x.disclosure !== 'hidden' && /^\d{4}-\d{2}/.test(String(x.date || '')));
+  const title = x => { if (x.disclosure === 'name' && x.consent && x.brand_name) return x.brand_name; const base = x.industry || PROP[x.property] || ''; const suf = {shop: '매장', office: '사무실'}[x.property] || ''; return suf && !base.endsWith(suf) && base !== PROP[x.property] ? `${base} ${suf}` : base; };
+  let deal = 'all', year = null;
+  const years = () => [...new Set(items.filter(x => deal === 'all' || x.deal_type === deal).map(x => String(x.date).slice(0, 4)))].sort().reverse();
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const draw = () => {
+    const ys = years();
+    $('#recEmpty').hidden = ys.length > 0; $('#years').hidden = !ys.length; $('#ledger').hidden = !ys.length; $('#ysum').hidden = !ys.length;
+    if (!ys.length) return;
+    if (!ys.includes(year)) year = ys[0];
+    $('#years').innerHTML = ys.map(y => {
+      const n = items.filter(x => String(x.date).startsWith(y) && (deal === 'all' || x.deal_type === deal)).length;
+      return `<button class="yr" role="tab" type="button" data-y="${y}" aria-selected="${y === year}" tabindex="${y === year ? 0 : -1}">${y}<small>${n}건</small></button>`;
+    }).join('');
+    const list = items.filter(x => String(x.date).startsWith(year) && (deal === 'all' || x.deal_type === deal)).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const by = {}; list.forEach(x => { const m = String(x.date).slice(5, 7); (by[m] = by[m] || []).push(x); });
+    const cnt = k => list.filter(x => x.deal_type === k).length;
+    $('#ysum').textContent = `${year}년 · ${list.length}건` + ['lease', 'sale', 'sublease'].filter(cnt).map(k => ` · ${DEAL[k]} ${cnt(k)}`).join('');
+    $('#ledger').innerHTML = Object.keys(by).sort().reverse().map((m, i) => `<li class="mrow" style="animation-delay:${reduce ? 0 : i * 90}ms"><div class="mo">${+m}<small>월</small></div><div class="deals">${
+      by[m].map(x => `<article class="deal"><div class="tags"><span class="tag2 ${esc(x.deal_type)}">${esc(DEAL[x.deal_type] || '')}</span><span class="tag2">${esc(PROP[x.property] || '')}</span>${x.industry && title(x) !== x.industry ? `<span class="tag2">${esc(x.industry)}</span>` : ''}</div><h3>${esc(title(x))}</h3>${x.area ? `<p class="where">${esc(x.area)}</p>` : ''}${x.note ? `<p class="nt">${esc(x.note)}</p>` : ''}</article>`).join('')
+    }</div></li>`).join('');
+  };
+  const pick = y => { if (y && y !== year) { year = y; draw(); const b = $(`#years [data-y="${y}"]`); b && b.focus({preventScroll: true}); } };
+  // 마우스를 올리면 그 해로 바뀌며 월별 기록이 차례로 펼쳐짐 (터치·키보드는 누르면)
+  let hoverT;
+  $('#years').addEventListener('mouseover', e => { const b = e.target.closest('.yr'); if (!b || !matchMedia('(hover:hover)').matches) return; clearTimeout(hoverT); hoverT = setTimeout(() => { if (b.dataset.y !== year) { year = b.dataset.y; draw(); } }, 140); });
+  $('#years').addEventListener('click', e => { const b = e.target.closest('.yr'); if (b) pick(b.dataset.y); });
+  $('#years').addEventListener('keydown', e => {
+    const ys = years(), i = ys.indexOf(year);
+    if (e.key === 'ArrowRight' && i < ys.length - 1) { e.preventDefault(); pick(ys[i + 1]); }
+    if (e.key === 'ArrowLeft' && i > 0) { e.preventDefault(); pick(ys[i - 1]); }
+  });
+  $$('.rec-filter button').forEach(b => b.addEventListener('click', () => { deal = b.dataset.deal; $$('.rec-filter button').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(); }));
+  draw();
+  if (demo) requestAnimationFrame(() => sec.scrollIntoView({block: 'start'}));
+}
 
 R.services = async () => {
   const s = await load('services');
