@@ -40,7 +40,7 @@ const site = load('site').then(s => {
   $$('[data-site]').forEach(el => { const v = s[el.dataset.site]; if (v) el.textContent = v; });
   $$('[data-tel]').forEach(a => a.href = 'tel:' + String(s.phone || '').replace(/\D/g, ''));
   const kakao = /^https:\/\/open\.kakao\.com\//.test(String(s.kakao_url || '')) ? s.kakao_url : '';
-  $$('[data-kakao]').forEach(a => { if (kakao) a.href = kakao; else a.hidden = true; });
+  if (kakao) $$('[data-kakao]').forEach(a => a.href = kakao); // 비어 있으면 기본 주소 그대로 (버튼은 숨기지 않음)
   const legal = [s.address, s.registration_no && `중개사무소 등록번호 ${s.registration_no}`, s.business_no && `사업자등록번호 ${s.business_no}`].filter(Boolean);
   const lg = $('#legal'); if (lg) lg.innerHTML = legal.map(esc).join('<br>');
   return s;
