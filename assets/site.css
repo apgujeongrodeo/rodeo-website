@@ -279,6 +279,18 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px}
 .lb-in img{width:100%;max-height:82vh;object-fit:contain;display:block;border-radius:4px;background:#F4EDE2}
 footer .logo img{height:34px}
 [hidden]{display:none!important}
+.btn.kakao{background:#FEE500;border-color:#FEE500;color:#191600;gap:7px}.btn.kakao:hover{background:#F5DC00;border-color:#F5DC00;color:#191600}
+.ki{width:18px;height:18px;flex:none}
+nav.main{gap:24px}nav.main a{white-space:nowrap;font-size:14.5px}.hd-r{gap:8px}.hd-r .btn{padding:0 18px;min-height:44px}
+@media(max-width:1300px){header.site .logo .lt{display:none}}
+@media(max-width:1120px){nav.main,.hd-r .btn{display:none}.menu-btn{display:inline-flex;align-items:center}}
+.klink{display:inline-flex;align-items:center;gap:6px;font-weight:500;color:var(--ink)}.klink .ki{color:#191600;background:#FEE500;border-radius:6px;padding:3px;width:24px;height:24px}
+.kcard{display:flex;align-items:center;gap:14px;background:#FEE500;color:#191600;border-radius:12px;padding:18px 20px;margin-bottom:28px;min-height:72px}
+.kcard .ki{width:34px;height:34px}.kcard span{display:flex;flex-direction:column;flex:1}.kcard b{font:600 18px var(--sans)}.kcard small{font-size:13.5px;opacity:.8}
+.kcard em{font-style:normal;font-weight:600;font-size:14px;background:#191600;color:#FEE500;border-radius:999px;padding:6px 14px}
+.kcard:hover{background:#F5DC00}
+.drawer .btn.kakao{margin-top:24px}.drawer .btn.kakao+.btn{margin-top:10px}
+@media(max-width:600px){.bar{grid-template-columns:.8fr 1.1fr 1.1fr!important}.bar .btn{padding:0 10px;font-size:14px}}
 [data-site=phone],[data-site=mobile]{white-space:nowrap}
 .done:not([hidden]){display:block}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
