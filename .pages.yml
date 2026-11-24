@@ -124,7 +124,7 @@ content:
       - { name: renewal_text, label: 재계약 설명, type: text }
 
   - name: projects
-    label: 매물·중개 사례 (실적)
+    label: 중개 사례·고객 후기
     type: file
     path: content/projects.json
     fields:
@@ -142,6 +142,7 @@ content:
               values:
                 - { value: shop, label: 상가 }
                 - { value: office, label: 사무실 }
+                - { value: food, label: 음식점·카페 }
                 - { value: clinic, label: 병의원 }
           - { name: title, label: 제목, type: string }
           - { name: summary, label: 요약, type: text }
@@ -157,6 +158,69 @@ content:
               - { name: value, label: 내용 (비우면 '기재 예정'), type: string }
           - { name: basis_note, label: 기준 안내 문구, type: text }
           - { name: checkpoints, label: 현장에서 살펴볼 포인트, type: string, list: true }
+          - { name: client, label: 고객 소개 (예 압구정로데오 카페 대표 · 재계약), type: string }
+          - { name: pros, label: 고객이 말한 좋았던 점, type: string, list: true }
+          - { name: cons, label: 고객이 말한 아쉬웠던 점, type: string, list: true }
+          - { name: video_url, label: 인터뷰 영상 주소 (유튜브), type: string }
+          - { name: source_url, label: 후기 원문 주소 (인스타그램·당근 등), type: string }
+          - { name: consent, label: 고객이 공개에 동의함 (체크해야 후기가 보임), type: boolean }
+
+  - name: listings
+    label: 단독 매물
+    type: file
+    path: content/listings.json
+    fields:
+      - { name: intro, label: 페이지 소개 문장, type: text }
+      - name: items
+        label: 매물 목록
+        type: object
+        list: true
+        fields:
+          - { name: slug, label: 주소용 영문 이름 (예 sinsa-663-26-2f), type: string, required: true }
+          - { name: published, label: 사이트에 공개 (필수 항목이 다 차야 실제로 보임), type: boolean }
+          - { name: exclusive, label: 단독 매물, type: boolean }
+          - name: status
+            label: 상태
+            type: select
+            options:
+              values:
+                - { value: available, label: 계약 가능 }
+                - { value: negotiating, label: 협의 중 }
+                - { value: closed, label: 계약 완료 (홈페이지에서 내려감) }
+          - { name: title, label: 제목, type: string }
+          - { name: headline, label: 제목 위 한 줄 (예 병·의원 추천 매물), type: string }
+          - { name: summary, label: 설명, type: text }
+          - { name: recommended, label: 추천 업종, type: string }
+          - { name: highlights, label: 특징 태그, type: string, list: true }
+          - { name: photos, label: 사진 (첫 장이 대표), type: image, list: true }
+          - { name: poster, label: 홍보 이미지 원본, type: image }
+          - name: deal_type
+            label: 거래 형태 (필수)
+            type: select
+            options:
+              values:
+                - { value: lease, label: 임대 }
+                - { value: sale, label: 매매 }
+          - { name: property_kind, label: 중개대상물 종류 (필수 · 건축물대장 용도 예 제2종 근린생활시설), type: string }
+          - { name: address, label: 소재지 (필수), type: string }
+          - { name: floor, label: 해당 층 (필수), type: string }
+          - { name: total_floors, label: 총 층수 (필수 · 예 지하1층/지상5층), type: string }
+          - { name: area_m2, label: 면적 ㎡ (필수 · 숫자만), type: string }
+          - { name: area_py, label: 면적 평 (숫자만), type: string }
+          - { name: area_basis, label: 면적 기준 (예 건축물대장 전용면적), type: string }
+          - { name: deposit, label: 보증금 (임대 필수), type: string }
+          - { name: rent, label: 월 임대료 (임대 필수), type: string }
+          - { name: sale_price, label: 매매가 (매매 필수), type: string }
+          - { name: premium, label: 권리금 (예 무권리), type: string }
+          - { name: maintenance, label: 관리비 (필수), type: string }
+          - { name: maintenance_items, label: 관리비 포함 항목, type: string }
+          - { name: approval_date, label: 사용승인일 (필수 · 건축물대장), type: string }
+          - { name: direction, label: 방향 (필수 · 예 남향 · 주출입구 기준), type: string }
+          - { name: move_in, label: 입주 가능일 (필수 · 예 즉시 입주 / 협의), type: string }
+          - { name: parking, label: 주차 대수 (필수 · 예 건물 총 3대), type: string }
+          - { name: checkpoints, label: 현장에서 함께 확인할 점, type: string, list: true }
+          - { name: note, label: 기타, type: text }
+          - { name: checked_on, label: 정보 확인일 (YYYY-MM-DD), type: string }
 
   - name: insights
     label: 상권 인사이트 (상권 분석·칼럼)
@@ -195,6 +259,9 @@ content:
     path: content/history.json
     fields:
       - { name: intro, label: 코너 소개 문장, type: text }
+      - { name: background, label: 배경 사진 (압구정로데오 거리 전경 · 가로 2400px 이상), type: image }
+      - { name: background_alt, label: 배경 사진 설명, type: string }
+      - { name: background_credit, label: 사진 출처 표기 (구매·촬영자), type: string }
       - name: founded
         label: 시작 기록
         type: object

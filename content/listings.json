@@ -1,0 +1,55 @@
+{
+  "intro": "로데오공인중개사무소가 건물주에게 직접 의뢰받아 소개하는 매물입니다. 사진과 조건을 먼저 보시고, 현장 방문은 카카오톡이나 전화로 일정을 잡아 주세요.",
+  "items": [
+    {
+      "slug": "sinsa-663-26-2f",
+      "published": false,
+      "exclusive": true,
+      "status": "available",
+      "title": "압구정로데오 2층 60평 통창 상가",
+      "headline": "병·의원 추천 매물",
+      "summary": "전면 통창과 코너 채광, 기둥이 적은 60평 공간으로 진료실·대기실 구성에 적합합니다.",
+      "recommended": "병·의원",
+      "highlights": [
+        "전면 통창 · 코너 채광",
+        "60평 개방형 공간",
+        "무권리"
+      ],
+      "deal_type": "lease",
+      "property_kind": "",
+      "address": "서울 강남구 신사동 663-26",
+      "floor": "2층",
+      "total_floors": "",
+      "area_py": "60",
+      "area_m2": "198.3",
+      "area_basis": "",
+      "deposit": "1억 원",
+      "rent": "600만 원",
+      "sale_price": "",
+      "premium": "무권리",
+      "maintenance": "50만 원",
+      "maintenance_items": "",
+      "approval_date": "",
+      "direction": "",
+      "move_in": "",
+      "parking": "",
+      "photos": [
+        "/media/listings/sinsa-663-26-01.jpg",
+        "/media/listings/sinsa-663-26-02.jpg",
+        "/media/listings/sinsa-663-26-03.jpg",
+        "/media/listings/sinsa-663-26-04.jpg",
+        "/media/listings/sinsa-663-26-05.jpg"
+      ],
+      "poster": "/media/listings/sinsa-663-26-poster.jpg",
+      "checkpoints": [
+        "2층까지의 환자 동선: 엘리베이터 유무와 크기, 계단 폭, 휠체어 접근",
+        "진료실·대기실 배치가 가능한 평면 구조와 기둥 위치",
+        "의료 장비를 감안한 전기 용량, 급배수와 환기 설비",
+        "건물 외부 간판 위치와 거리에서 보이는 정도",
+        "진료과별 의료기관 개설 요건 (관할 보건소 확인 필요)"
+      ],
+      "note": "",
+      "checked_on": "2026-11-24"
+    }
+  ]
+}

@@ -23,7 +23,7 @@ const clean = html => {
 const load = name => fetch(`content/${name}.json`, {cache: 'no-cache'}).then(r => { if (!r.ok) throw new Error(name); return r.json(); });
 const fail = msg => { const m = $('main'); if (m) m.insertAdjacentHTML('afterbegin', `<p class="loadfail" role="alert">${esc(msg)}</p>`); };
 const FIELD_ETC = {key: 'etc', name: '기타'};
-const TYPE = {shop: '상가', office: '사무실', clinic: '병의원'};
+const TYPE = {shop: '상가', office: '사무실', food: '음식점·카페', clinic: '병의원'};
 
 /* ---------- 공통: 헤더·메뉴·사이트 정보 ---------- */
 const hdr = $('header.site');
@@ -54,7 +54,10 @@ $$('.leaves').forEach(el => el.innerHTML = blobs.map(([x,y,w,h]) => `<i style="l
 const R = {};
 
 R.home = async () => {
-  const [h, sv, pj] = await Promise.all([load('home'), load('services').catch(() => ({items: []})), load('projects').catch(() => ({items: []}))]);
+  const [h, sv, pj, ls, hs] = await Promise.all([load('home'), load('services').catch(() => ({items: []})), load('projects').catch(() => ({items: []})), load('listings').catch(() => ({items: []})), load('history').catch(() => ({}))]);
+  if (hs.background) { const sp = $('#streetPh'); sp.style.setProperty('--bg', `url("${src(hs.background)}")`); sp.setAttribute('aria-label', (hs.background_alt || '압구정로데오 거리') + ' · 로데오의 기록 보기'); sp.hidden = false; }
+  const live = (ls.items || []).filter(listingReady);
+  $('#homeList').innerHTML = live.slice(0, 3).map(lCard).join(''); $('#homeListSec').hidden = !live.length;
   $('#hEyebrow').textContent = h.hero_eyebrow || '';
   $('#hTitle').innerHTML = (h.hero_title || []).map(l => `<span class="l"><span>${esc(l)}</span></span>`).join('');
   $('#hLead').textContent = h.hero_lead || '';
@@ -106,6 +109,7 @@ async function record() {
   const h = await load('history').catch(() => ({items: []}));
   const demo = location.hash === '#record-demo';
   $('#recIntro').textContent = h.intro || '';
+  if (h.background) { const hero = $('#recHero'); hero.classList.remove('sky'); hero.style.setProperty('--bg', `url("${src(h.background)}")`); hero.setAttribute('role', 'img'); hero.setAttribute('aria-label', h.background_alt || '압구정로데오 거리 전경'); $('#recCredit').textContent = h.background_credit || ''; }
   $('#recDemo').hidden = !demo;
   if (h.founded) { $('#foundYear').textContent = h.founded.year || ''; $('#foundText').textContent = h.founded.text || ''; }
   // 공개 규칙: 공개 체크 + '표시 안 함' 아님. 상호명은 '상호명 공개' + 동의 확인일 때만. 금액 칸은 아예 없음.
@@ -187,12 +191,13 @@ R.projects = async () => {
       <button class="poster" type="button" data-poster="${esc(src(c.poster))}" data-title="${esc(c.title)}" ${c.poster ? '' : 'disabled'} aria-label="매물 포스터 크게 보기">${img(c.poster, c.title + ' 매물 포스터', 'img r34', '매물 포스터 자리')}${c.poster ? '<span class="zoom">포스터 크게 보기</span>' : ''}</button>
       <div class="thumbs">${(c.gallery || []).map(g => img(g, c.title, 'img r43')).join('') || img('', '', 'img r43', '매물 사진 자리') + img('', '', 'img r43', '매물 사진 자리')}</div>
     </div><div class="prose">
-      <h3>당시 검토 조건</h3>
-      <dl class="spec">${(c.conditions || []).map(d => `<div><dt>${esc(d.label)}</dt><dd${d.value ? '' : ' class="pending"'}>${d.value ? esc(d.value) : '홍보 자료 기준 조건 기재 예정'}</dd></div>`).join('')}</dl>
+      ${(c.conditions || []).length ? '<h3>계약 조건</h3>' : ''}
+      <dl class="spec">${(c.conditions || []).map(d => `<div><dt>${esc(d.label)}</dt><dd${d.value ? '' : ' class="pending"'}>${d.value ? esc(d.value) : '기재 예정'}</dd></div>`).join('')}</dl>
       <p class="note">${esc(c.basis_note)}</p>
-      <h3>현장에서 살펴볼 포인트</h3>
+      ${c.consent && ((c.pros || []).length || (c.cons || []).length) ? `<h3>고객이 직접 말한 이야기${c.client ? ` · ${esc(c.client)}` : ''}</h3><div class="review">${(c.pros || []).length ? `<div class="pro"><h4>좋았던 점</h4><ul class="checks">${c.pros.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}${(c.cons || []).length ? `<div class="con"><h4>아쉬웠던 점</h4><ul class="checks">${c.cons.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}</div><div class="acts">${/^https:\/\//.test(c.video_url || '') ? `<a class="btn" href="${esc(c.video_url)}" target="_blank" rel="noopener">인터뷰 영상 보기</a>` : ''}${/^https:\/\//.test(c.source_url || '') ? `<a class="btn" href="${esc(c.source_url)}" target="_blank" rel="noopener">후기 원문 보기</a>` : ''}</div>` : ''}
+      ${(c.checkpoints || []).length ? '<h3>현장에서 살펴볼 포인트</h3>' : ''}
       <ul class="checks">${(c.checkpoints || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-      <a class="btn cta" href="contact.html#${c.type === 'clinic' ? 'clinic' : c.type === 'office' ? 'office' : 'lease'}">이 사례로 문의하기</a>
+      <a class="btn cta" href="contact.html#${c.type === 'clinic' ? 'clinic' : c.type === 'office' ? 'office' : 'lease'}">비슷한 자리 문의하기</a>
     </div></div></div></section>`).join('');
   // poster lightbox
   const lb = $('#lightbox'); let last = null;
@@ -440,6 +445,76 @@ R.qna = async () => {
     finally { clearTimeout(t); sending = false; $('#qBtn').disabled = false; $('#qBtn').textContent = '질문 올리기'; }
   });
 };
+
+/* ---------- 단독 매물 ---------- */
+// 표시·광고 명시사항: 비어 있으면 공개를 켜도 홈페이지에 나오지 않음
+const L_REQ = {address: '소재지', property_kind: '중개대상물 종류', floor: '해당 층', total_floors: '총 층수', area_m2: '면적(㎡)', maintenance: '관리비', approval_date: '사용승인일', direction: '방향', move_in: '입주 가능일', parking: '주차 대수'};
+const lMissing = x => { const m = Object.keys(L_REQ).filter(k => !String(x[k] || '').trim()).map(k => L_REQ[k]); if (x.deal_type === 'sale') { if (!String(x.sale_price || '').trim()) m.push('매매가'); } else { if (!String(x.deposit || '').trim()) m.push('보증금'); if (!String(x.rent || '').trim()) m.push('월 임대료'); } return m; };
+const listingReady = x => x.published && x.status !== 'closed' && !lMissing(x).length;
+const LST = {available: '계약 가능', negotiating: '협의 중', closed: '계약 완료'};
+const short = v => String(v || '').replace(/\s*원$/, '');
+const lPrice = x => x.deal_type === 'sale' ? `매매 ${short(x.sale_price)}` : `보증금 ${short(x.deposit)} · 월 ${short(x.rent)}`;
+const lCard = x => `<a class="lcard" href="listings.html#${esc(x.slug)}"><div class="lph">${(x.photos || [])[0] ? `<img src="${esc(src(x.photos[0]))}" alt="${esc(x.title)}" loading="lazy">` : ''}<span class="lbadges">${x.exclusive ? '<span class="lbg ex">단독</span>' : ''}<span class="lbg st-${esc(x.status)}">${esc(LST[x.status] || '')}</span>${listingReady(x) ? '' : '<span class="lbg draft">공개 전</span>'}</span></div>
+  <div class="bd"><p class="hl">${esc(x.headline || '')}</p><h3>${esc(x.title)}</h3><p class="price">${esc(lPrice(x))}${x.maintenance ? ` · 관리비 ${esc(short(x.maintenance))}` : ''}</p><p class="meta">${[x.floor, x.area_py && `${x.area_py}평`, x.premium].filter(Boolean).map(esc).join(' · ')}</p></div></a>`;
+
+R.listings = async () => {
+  const [d, s] = await Promise.all([load('listings'), site]);
+  const preview = location.hash === '#preview';
+  $('#lIntro').textContent = d.intro || '';
+  const all = d.items || [];
+  const items = preview ? all : all.filter(listingReady);
+  if (preview) {
+    const notes = all.filter(x => !listingReady(x)).map(x => `<li>${esc(x.title)}: ${!x.published ? '공개 꺼짐' : x.status === 'closed' ? '계약 완료' : ''}${lMissing(x).length ? ` 비어 있는 필수 항목 – ${lMissing(x).map(esc).join(', ')}` : ''}</li>`).join('');
+    $('#pvBanner').innerHTML = `<b>미리보기 화면입니다. 손님에게는 '공개 전' 표시가 없는 매물만 보입니다.</b>${notes ? `<ul style="margin:6px 0 0;padding-left:18px">${notes}</ul>` : ''}`;
+    $('#pvBanner').hidden = false;
+  }
+  $('#lcards').innerHTML = items.map(lCard).join('');
+  $('#lEmpty').hidden = items.length > 0;
+  const row = (k, v, req) => `<tr><th scope="row">${k}</th><td${!v && req ? ' class="miss"' : ''}>${v ? esc(v) : req ? '확인 후 기재' : '-'}</td></tr>`;
+  const kakao = esc(s.kakao_url || 'https://open.kakao.com/o/se3nXtYi');
+  $('#lDetail').innerHTML = items.map(x => {
+    const ph = (x.photos || []).map(src);
+    const sale = x.deal_type === 'sale';
+    return `<section class="sec ldet" id="${esc(x.slug)}"><div class="wrap">
+    <div class="ldet-grid"><div class="gal">
+      <button class="main" type="button" data-full="${esc(ph[0] || '')}" aria-label="사진 크게 보기">${ph[0] ? `<img src="${esc(ph[0])}" alt="${esc(x.title)} 사진 1">` : ''}</button>
+      ${ph.length > 1 ? `<div class="tn">${ph.map((p, i) => `<button type="button" data-src="${esc(p)}" aria-current="${i === 0}" aria-label="사진 ${i + 1}"><img src="${esc(p)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
+      ${x.poster ? `<a class="poster-link" href="${esc(src(x.poster))}" target="_blank" rel="noopener">홍보 이미지 원본 보기</a>` : ''}
+    </div><div>
+      <div class="lbadges" style="position:static;margin-bottom:14px">${x.exclusive ? '<span class="lbg ex">단독 매물</span>' : ''}<span class="lbg st-${esc(x.status)}">${esc(LST[x.status] || '')}</span>${listingReady(x) ? '' : '<span class="lbg draft">공개 전</span>'}</div>
+      <p class="hl">${esc(x.headline || '')}</p><h2>${esc(x.title)}</h2><p>${esc(x.summary || '')}</p>
+      <div class="ptiles">${sale ? `<div class="ptile" style="grid-column:1/-1"><span>매매가</span><b>${esc(short(x.sale_price) || '-')}</b></div>` : `<div class="ptile"><span>보증금</span><b>${esc(short(x.deposit) || '-')}</b></div><div class="ptile"><span>월 임대료</span><b>${esc(short(x.rent) || '-')}</b></div>`}<div class="ptile"${sale ? ' style="grid-column:1/-1"' : ''}><span>관리비</span><b>${esc(short(x.maintenance) || '-')}</b></div></div>
+      <div class="prow"><div>층 / 면적<b>${esc([x.floor, x.area_py && x.area_py + '평'].filter(Boolean).join(' / '))}</b></div><div>권리금<b class="gold">${esc(x.premium || '-')}</b></div></div>
+      ${(x.highlights || []).length ? `<ul class="chips">${x.highlights.map(h => `<li>${esc(h)}</li>`).join('')}</ul>` : ''}
+      <div class="acts"><a class="btn kakao" href="${kakao}" target="_blank" rel="noopener"><svg class="ki" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.8 5.3 4.6 6.7L5.7 21.2c-.1.3.3.6.6.4l4.1-2.7c.5.1 1 .1 1.6.1 5.5 0 10-3.6 10-8S17.5 3 12 3z" fill="currentColor"/></svg><span>카톡으로 이 매물 문의</span></a><a class="btn" href="tel:${esc(String(s.mobile || s.phone || '').replace(/[^\d]/g, ''))}">전화 ${esc(s.mobile || s.phone || '')}</a><a class="btn cta" href="contact.html#${x.recommended && /병|의원/.test(x.recommended) ? 'clinic' : 'lease'}">현장 방문 신청</a></div>
+    </div></div>
+    <div class="ldet-info"><div><h3>매물 정보</h3><table class="ltable"><tbody>
+      ${row('소재지', [x.address, x.floor].filter(Boolean).join(' '), 1)}${row('중개대상물 종류', x.property_kind, 1)}${row('거래 형태', sale ? '매매' : '임대', 1)}
+      ${row('해당 층 / 총 층수', x.floor && x.total_floors ? `${x.floor} / ${x.total_floors}` : '', 1)}${row('면적', x.area_m2 ? `${x.area_m2}㎡${x.area_py ? ` (약 ${x.area_py}평)` : ''}${x.area_basis ? ` · ${x.area_basis}` : ''}` : '', 1)}
+      ${sale ? row('매매가', x.sale_price, 1) : row('보증금 / 월 임대료', x.deposit && x.rent ? `${x.deposit} / ${x.rent}` : '', 1)}${row('권리금', x.premium)}
+      ${row('관리비', x.maintenance ? `${x.maintenance}${x.maintenance_items ? ` (${x.maintenance_items})` : ''}` : '', 1)}${row('사용승인일', x.approval_date, 1)}${row('방향', x.direction, 1)}${row('입주 가능일', x.move_in, 1)}${row('주차 대수', x.parking, 1)}${row('추천 업종', x.recommended)}${x.note ? row('기타', x.note) : ''}
+    </tbody></table>${x.checked_on ? `<p class="note">정보 확인일 ${esc(x.checked_on)} · 조건은 협의와 건물 사정에 따라 바뀔 수 있습니다.</p>` : ''}</div>
+    <div>${(x.checkpoints || []).length ? `<h3>현장에서 함께 확인할 점</h3><ul class="checks">${x.checkpoints.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}
+      <div class="office"><b>${esc(s.name || '로데오공인중개사무소')}</b>${esc(s.address || '')}<br>대표(개업공인중개사) ${esc(s.representative || '')} · 등록번호 ${esc(s.registration_no || '')}<br>전화 <a href="tel:${esc(String(s.phone || '').replace(/[^\d]/g, ''))}">${esc(s.phone || '')}</a> · 담당 ${esc(s.broker || '')} 공인중개사 ${esc(s.mobile || '')}</div></div></div>
+    </div></section>`;
+  }).join('');
+  // 갤러리
+  $$('.gal').forEach(g => {
+    const main = g.querySelector('.main');
+    g.querySelectorAll('.tn button').forEach(b => b.addEventListener('click', () => {
+      main.dataset.full = b.dataset.src; main.querySelector('img').src = b.dataset.src;
+      g.querySelectorAll('.tn button').forEach(t => t.setAttribute('aria-current', t === b));
+    }));
+  });
+  const lb = $('#lightbox'); let last = null;
+  const close = () => { lb.hidden = true; last && last.focus(); };
+  $$('.gal .main').forEach(b => b.addEventListener('click', () => { if (!b.dataset.full) return; last = b; $('#lbImg').innerHTML = `<img src="${esc(b.dataset.full)}" alt="매물 사진 크게 보기">`; lb.hidden = false; $('#lbClose').focus(); }));
+  $('#lbClose').addEventListener('click', close);
+  lb.addEventListener('click', e => { if (e.target === lb) close(); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !lb.hidden) close(); });
+  if (!preview) scrollToHash();
+};
+R.admin = async () => {};
 
 function scrollToHash() { const id = decodeURIComponent(location.hash.slice(1)); const el = id && document.getElementById(id); if (el) requestAnimationFrame(() => el.scrollIntoView({block: 'start'})); }
 
