@@ -495,7 +495,7 @@ R.listings = async () => {
       ${row('관리비', x.maintenance ? `${x.maintenance}${x.maintenance_items ? ` (${x.maintenance_items})` : ''}` : '', 1)}${row('사용승인일', x.approval_date, 1)}${row('방향', x.direction, 1)}${row('입주 가능일', x.move_in, 1)}${row('주차 대수', x.parking, 1)}${row('추천 업종', x.recommended)}${x.note ? row('기타', x.note) : ''}
     </tbody></table>${x.checked_on ? `<p class="note">정보 확인일 ${esc(x.checked_on)} · 조건은 협의와 건물 사정에 따라 바뀔 수 있습니다.</p>` : ''}</div>
     <div>${(x.checkpoints || []).length ? `<h3>현장에서 함께 확인할 점</h3><ul class="checks">${x.checkpoints.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}
-      <div class="office"><b>${esc(s.name || '로데오공인중개사무소')}</b>${esc(s.address || '')}<br>대표(개업공인중개사) ${esc(s.representative || '')} · 등록번호 ${esc(s.registration_no || '')}<br>전화 <a href="tel:${esc(String(s.phone || '').replace(/[^\d]/g, ''))}">${esc(s.phone || '')}</a> · 담당 ${esc(s.broker || '')} 공인중개사 ${esc(s.mobile || '')}</div></div></div>
+      <div class="office"><b>${esc(s.name || '로데오공인중개사무소')}</b>${esc(s.address || '')}<br>중개사무소 등록번호 ${esc(s.registration_no || '')}<br>전화 <a href="tel:${esc(String(s.phone || '').replace(/[^\d]/g, ''))}">${esc(s.phone || '')}</a> · 담당 ${esc(s.broker || '')} 공인중개사 ${esc(s.mobile || '')}</div></div></div>
     </div></section>`;
   }).join('');
   // 갤러리

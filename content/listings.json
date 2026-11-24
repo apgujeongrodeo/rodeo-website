@@ -50,6 +50,54 @@
       ],
       "note": "",
       "checked_on": "2026-11-24"
+    },
+    {
+      "slug": "sinsa-643-17-2f",
+      "published": false,
+      "exclusive": false,
+      "status": "available",
+      "title": "신사동 2층 50평 상가 임대",
+      "headline": "",
+      "summary": "흰 벽으로 정리된 50평 공간에 창이 여러 면으로 나 있어 밝습니다. 엘리베이터로 바로 올라옵니다.",
+      "recommended": "",
+      "highlights": [
+        "엘리베이터",
+        "창이 많은 밝은 공간",
+        "50평"
+      ],
+      "deal_type": "lease",
+      "property_kind": "",
+      "address": "서울 강남구 신사동 643-17",
+      "floor": "2층",
+      "total_floors": "",
+      "area_py": "50",
+      "area_m2": "165.3",
+      "area_basis": "",
+      "deposit": "1억 원",
+      "rent": "650만 원",
+      "sale_price": "",
+      "premium": "",
+      "maintenance": "50만 원",
+      "maintenance_items": "",
+      "approval_date": "",
+      "direction": "",
+      "move_in": "",
+      "parking": "",
+      "photos": [
+        "/media/listings/sinsa-643-17-photo-1.jpg",
+        "/media/listings/sinsa-643-17-photo-2.jpg",
+        "/media/listings/sinsa-643-17-photo-3.jpg",
+        "/media/listings/sinsa-643-17-photo-4.jpg",
+        "/media/listings/sinsa-643-17-photo-5.jpg",
+        "/media/listings/sinsa-643-17-photo-6.jpg",
+        "/media/listings/sinsa-643-17-photo-7.jpg",
+        "/media/listings/sinsa-643-17-photo-8.jpg",
+        "/media/listings/sinsa-643-17-photo-9.jpg"
+      ],
+      "poster": "",
+      "checkpoints": [],
+      "note": "",
+      "checked_on": "2026-11-24"
     }
   ]
 }
