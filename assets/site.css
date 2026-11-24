@@ -354,6 +354,41 @@ nav.main{gap:24px}nav.main a{white-space:nowrap;font-size:14.5px}.hd-r{gap:8px}.
 .nempty b{display:block;font:300 clamp(56px,9vw,110px)/1 var(--latin);font-style:italic;color:var(--gold-ink)}.nempty p{color:var(--soft)}
 .opinion{margin:28px 0;background:#2A1E17;color:#F4ECDF;border-radius:12px;padding:24px 26px}
 .opinion .who{font:italic 400 18px var(--latin);color:#D2B07A;margin:0 0 8px}.opinion p{margin:0;font:400 18px/1.7 var(--serif)}
+.sh{font:500 clamp(24px,2.6vw,32px)/1.3 var(--serif)!important;margin:0 0 22px}
+.qform{background:var(--bg);border-radius:12px;padding:clamp(22px,4vw,44px);max-width:900px;margin:0 auto}
+.qf-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px 20px;margin-bottom:18px}.qf-head .hint{margin:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px}
+.seg label{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;cursor:pointer;font-size:15px}
+.seg input{accent-color:#81101C}.seg label:has(input:checked){background:var(--ink);color:var(--bg)}
+.qf-foot{display:flex;flex-wrap:wrap;align-items:center;gap:14px}.qf-foot .btn{min-width:200px}.qf-foot .status{margin:0}
+.bhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}.bcount{color:var(--soft);font-size:14.5px;margin:0}
+.board{border-top:2px solid var(--ink)}
+.board .brow{display:grid;grid-template-columns:64px 110px minmax(0,1fr) 90px 110px 64px;gap:12px;align-items:center;padding:16px 8px;border-bottom:1px solid var(--line);font-size:15px}
+.board .bth{font-size:13.5px;color:var(--soft);font-weight:500;padding:12px 8px}
+.bth span:nth-child(3){text-align:left}
+.brow .n,.brow .v,.brow .d,.brow .a{color:var(--soft);text-align:center;font-variant-numeric:tabular-nums}
+.brow .fd{font-size:13px;color:var(--gold-ink);text-align:center}
+.bitem>button{all:unset;box-sizing:border-box;width:100%;cursor:pointer}
+.bitem>button:hover .t{text-decoration:underline;text-underline-offset:4px}
+.bitem>button:focus-visible{outline:2px solid var(--cta);outline-offset:-2px}
+.brow .t{display:flex;align-items:center;gap:8px;min-width:0}.brow .t span.tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{flex:none;font:700 11px var(--sans);letter-spacing:.02em;padding:2px 7px;border-radius:4px}
+.badge.new{background:#81101C;color:#fff}.badge.ans{background:#E6F1E8;color:#24451C}.badge.wait{background:var(--bg2);color:var(--soft)}
+.lock{flex:none;width:14px;height:14px;color:var(--soft)}
+.bdetail{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.2,.7,.1,1);background:var(--bg2)}
+.bitem.open .bdetail{grid-template-rows:1fr}.bdetail>div{overflow:hidden}
+.bbody{padding:22px clamp(16px,6vw,84px) 26px}.bbody .qtxt{white-space:pre-wrap;margin:0 0 18px;font-size:16px}
+.bbody .ansbox{background:var(--bg);border-left:3px solid var(--gold);border-radius:6px;padding:16px 18px}
+.bbody .ansbox .who{font:500 14px var(--sans);color:var(--gold-ink);margin:0 0 6px}.bbody .ansbox p{margin:0;white-space:pre-wrap}
+.bbody .pend{color:var(--soft);font-size:14.5px;margin:0}
+.bitem.fresh{animation:flash 1.6s ease}
+@keyframes flash{0%{background:#FFF4C4}100%{background:transparent}}
+.bmore{text-align:center;margin-top:24px}.bmore .btn{min-width:220px}
+.bempty{color:var(--soft);padding:28px 8px}
+.askinfo .askacts{align-self:center}
+@media(max-width:760px){.board .bth{display:none}.board .brow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"t t" "m v";gap:6px 12px;padding:16px 4px}
+ .brow .n{display:none}.brow .fd{display:none}.brow .t{grid-area:t}.brow .a,.brow .d{display:none}.brow .meta{grid-area:m;display:block!important;font-size:13px;color:var(--soft);text-align:left}.brow .v{grid-area:v;font-size:13px}}
+.brow .meta{display:none}
 .qtabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
 .qtabs button{min-height:44px;padding:0 20px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--ink);font:500 15px var(--sans);cursor:pointer}
 .qtabs button[aria-selected=true]{background:#2A1E17;color:#F4ECDF;border-color:#2A1E17}

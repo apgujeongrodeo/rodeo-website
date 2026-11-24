@@ -285,14 +285,3 @@ content:
             fields:
               - { name: q, label: 질문, type: string }
               - { name: a, label: 답변, type: text }
-      - name: answered
-        label: 방문자 질문에 대한 답변 (질문자 이름·연락처는 쓰지 마세요)
-        type: object
-        list: true
-        fields:
-          - { name: published, label: 사이트에 공개 (질문자가 익명 공개에 동의한 경우만), type: boolean }
-          - { name: date, label: 답변일, type: date }
-          - { name: category, label: 분야, type: string }
-          - { name: q, label: "질문 (개인정보·상호 등을 지우고 다듬어서)", type: text }
-          - { name: a, label: 답변, type: text }
-          - { name: answered_by, label: 답변자, type: string }

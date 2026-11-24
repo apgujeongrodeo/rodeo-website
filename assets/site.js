@@ -360,38 +360,84 @@ R.qna = async () => {
     $('#faq').innerHTML = (groups[gi] ? groups[gi].items : []).map((x, i) => qaItem(x.q, x.a, i)).join('');
   };
   $('#qtabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; gi = +b.dataset.i; drawFaq(); });
-  bindQa($('#faq')); bindQa($('#answered')); drawFaq();
-  const ans = (d.answered || []).filter(x => x.published && x.q && x.a).sort((a, b) => String(b.date).localeCompare(String(a.date)));
-  $('#answeredSec').hidden = !ans.length;
-  $('#answered').innerHTML = ans.map((x, i) => qaItem(x.q, x.a, i, [x.category, x.answered_by, x.date].filter(Boolean).join(' · '))).join('');
+  bindQa($('#faq')); drawFaq();
 
   const s = await site;
   const endpoint = String(s.form_endpoint || '').trim(), online = /^https:\/\//.test(endpoint);
+
+  /* ----- 게시판 ----- */
+  const PAGE = 10; let all = [], shown = PAGE, freshId = null;
+  const today = new Date(); const isNew = d => (today - new Date(d + 'T00:00:00+09:00')) / 864e5 < 3;
+  const LOCK = '<svg class="lock" viewBox="0 0 24 24" aria-label="비밀글"><path fill="currentColor" d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zm-7-2a2 2 0 0 1 4 0v2h-4z"/></svg>';
+  const viewed = id => { try { return sessionStorage.getItem('v_' + id); } catch { return null; } };
+  const markViewed = id => { try { sessionStorage.setItem('v_' + id, 1); } catch {} };
+  const drawBoard = () => {
+    const list = all.slice(0, shown), total = all.length;
+    $('#bcount').textContent = total ? `전체 ${total}건` : '';
+    $('#bempty').hidden = total > 0;
+    $('#blist').innerHTML = list.map((x, i) => `<div class="bitem${x.id === freshId ? ' fresh' : ''}" data-id="${esc(x.id)}" role="row"><button type="button" aria-expanded="false" class="brow">
+      <span class="n" role="cell">${total - i}</span><span class="fd" role="cell">${esc(x.field || '')}</span>
+      <span class="t" role="cell">${x.secret ? LOCK : ''}<span class="tx">${esc(x.title)}</span>${isNew(x.date) ? '<span class="badge new">NEW</span>' : ''}${x.answered ? '<span class="badge ans">답변완료</span>' : '<span class="badge wait">답변대기</span>'}</span>
+      <span class="a" role="cell">${esc(x.author)}</span><span class="d" role="cell">${esc(String(x.date).replace(/-/g, '.'))}</span><span class="v" role="cell">조회 ${x.views}</span>
+      <span class="meta">${esc(x.author)} · ${esc(String(x.date).replace(/-/g, '.'))}</span></button>
+      <div class="bdetail" role="region"><div><div class="bbody">불러오는 중…</div></div></div></div>`).join('');
+    $('#bmore').hidden = total <= shown;
+    $('#bmore').textContent = `더보기 (${Math.min(PAGE, total - shown)}건 더)`;
+  };
+  const loadBoard = async () => {
+    if (!online) { $('#bempty').hidden = false; return; }
+    try { const r = await fetch(`${endpoint}?action=list`); const j = await r.json(); if (!j.ok) throw 0; all = j.items || []; $('#berr').hidden = true; drawBoard(); }
+    catch { $('#berr').hidden = false; }
+  };
+  $('#bmore').addEventListener('click', () => { shown += PAGE; drawBoard(); });
+  $('#blist').addEventListener('click', async e => {
+    const b = e.target.closest('.bitem > button'); if (!b) return;
+    const it = b.parentElement, id = it.dataset.id, open = !it.classList.contains('open');
+    it.classList.toggle('open', open); b.setAttribute('aria-expanded', open);
+    if (!open || it.dataset.loaded) return;
+    const body = it.querySelector('.bbody');
+    try {
+      const p = await (await fetch(`${endpoint}?action=post&id=${encodeURIComponent(id)}`)).json();
+      if (!p.ok) throw 0;
+      it.dataset.loaded = 1;
+      if (p.secret) body.innerHTML = `<p class="pend">비밀글입니다. 작성자에게 남겨 주신 연락처로 답변드립니다.${p.answered ? ' (답변 완료)' : ''}</p>`;
+      else body.innerHTML = `<p class="qtxt">${esc(p.question)}</p>${p.answer ? `<div class="ansbox"><p class="who">${esc(p.answered_by || '로데오공인중개사무소')} 답변${p.answer_date ? ' · ' + esc(p.answer_date.replace(/-/g, '.')) : ''}</p><p>${esc(p.answer)}</p></div>` : '<p class="pend">답변을 준비하고 있습니다. 급하시면 카카오톡이나 전화로 문의해 주세요.</p>'}`;
+      if (!viewed(id)) {
+        markViewed(id);
+        fetch(endpoint, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({type: 'view', id})}).catch(() => {});
+        const x = all.find(a => a.id === id); if (x) { x.views++; const v = it.querySelector('.v'); if (v) v.textContent = `조회 ${x.views}`; }
+      }
+    } catch { body.innerHTML = '<p class="pend">글을 불러오지 못했습니다. 잠시 후 다시 눌러 주세요.</p>'; }
+  });
+  loadBoard();
+
+  /* ----- 질문하기 ----- */
   if (!online) $('#qMode').textContent = '온라인 질문 접수를 연결하는 중입니다. 지금은 카카오톡이나 전화로 문의해 주세요.';
   const st = (t, k) => { const el = $('#qStatus'); el.hidden = !t; el.textContent = t || ''; el.className = 'status' + (k ? ' ' + k : ''); };
   let sending = false;
   $('#qform').addEventListener('submit', async e => {
     e.preventDefault(); if (sending) return;
-    const q = $('#qtext').value.trim(), ph = $('#qphone').value.replace(/\s/g, '');
-    const okQ = !!q, okP = !ph || /^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(ph), okA = !ph && !$('#qnick').value.trim() || $('#qagree').checked;
-    $('#fQ').classList.toggle('bad', !okQ); $('#fQPhone').classList.toggle('bad', !okP); $('#fQAgree').classList.toggle('bad', !okA);
-    if (!okQ) return $('#qtext').focus(); if (!okP) return $('#qphone').focus(); if (!okA) return $('#qagree').focus();
+    const title = $('#qtitle').value.trim(), q = $('#qtext').value.trim(), ph = $('#qphone').value.replace(/\s/g, ''), nick = $('#qnick').value.trim();
+    const ok = { fQT: !!title, fQ: !!q, fQPhone: !ph || /^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(ph), fQAgree: (!ph && !nick) || $('#qagree').checked };
+    let first = null; for (const k in ok) { const f = document.getElementById(k); f.classList.toggle('bad', !ok[k]); if (!ok[k] && !first) first = f; }
+    if (first) { const i = first.querySelector('input,textarea'); i && i.focus(); return; }
     if (!online) return st('온라인 질문 접수가 아직 연결되지 않아 저장되지 않았습니다. 카카오톡이나 전화로 문의해 주세요.', 'bad');
-    sending = true; $('#qBtn').disabled = true; $('#qBtn').textContent = '보내는 중…'; st('질문을 보내고 있습니다.');
+    sending = true; $('#qBtn').disabled = true; $('#qBtn').textContent = '올리는 중…'; st('질문을 올리고 있습니다.');
     const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 15000);
     try {
+      const secret = (document.querySelector('input[name=qvis]:checked') || {}).value === 'secret';
       const r = await fetch(endpoint, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, signal: ctrl.signal, body: JSON.stringify({
-        type: 'question', field: $('#qfield').value, question: q, nickname: $('#qnick').value.trim(), phone: ph,
-        public_ok: $('#qpublic').checked, consent: $('#qagree').checked, consent_version: s.consent_version || '', page: location.pathname, website: $('#qwebsite').value})});
+        type: 'question', field: $('#qfield').value, title, question: q, nickname: nick, phone: ph, secret,
+        consent: $('#qagree').checked, consent_version: s.consent_version || '', website: $('#qwebsite').value})});
       const res = await r.json();
       if (res.ok) {
-        $('#qform').querySelectorAll('.f,.grid2,.hint,#qBtn,.agree,.hp').forEach(n => n.hidden = true); st('');
-        $('#qDoneText').textContent = `${res.id ? `접수번호 ${res.id} · ` : ''}${ph ? '확인 후 남겨 주신 연락처로 답변드립니다.' : '답변은 공개 동의 여부에 따라 이 페이지에 올라갈 수 있습니다. 직접 답변을 받으시려면 카카오톡이나 전화로 문의해 주세요.'}`;
-        $('#qDone').hidden = false; $('#qDone').focus();
-      } else if (res.error === 'too_soon') st('조금 전에 질문이 접수되었습니다. 잠시 후 다시 시도해 주세요.', 'bad');
+        st(`질문이 올라갔습니다${res.id ? ` (접수번호 ${res.id})` : ''}. ${ph ? '남겨 주신 연락처로 답변드립니다.' : '답변은 아래 게시판에서 확인하실 수 있습니다.'}`, 'ok');
+        ['#qtitle', '#qtext', '#qphone', '#qnick'].forEach(id => $(id).value = ''); $('#qagree').checked = false;
+        freshId = res.id; shown = PAGE; await loadBoard(); $('#board').scrollIntoView({behavior: 'smooth', block: 'start'});
+      } else if (res.error === 'too_soon') st('조금 전에 질문이 올라갔습니다. 잠시 후 다시 시도해 주세요.', 'bad');
       else throw new Error(res.error || 'server');
-    } catch { st('질문을 보내지 못했습니다. 입력하신 내용은 그대로 있습니다. 다시 시도하시거나 카카오톡으로 문의해 주세요.', 'bad'); }
-    finally { clearTimeout(t); sending = false; $('#qBtn').disabled = false; $('#qBtn').textContent = '질문 보내기'; }
+    } catch { st('질문을 올리지 못했습니다. 입력하신 내용은 그대로 있습니다. 다시 시도하시거나 카카오톡으로 문의해 주세요.', 'bad'); }
+    finally { clearTimeout(t); sending = false; $('#qBtn').disabled = false; $('#qBtn').textContent = '질문 올리기'; }
   });
 };
 
