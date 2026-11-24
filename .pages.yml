@@ -1,0 +1,189 @@
+media:
+  input: media
+  output: /media
+
+content:
+  - name: site
+    label: 사무소 기본 정보
+    type: file
+    path: content/site.json
+    fields:
+      - { name: name, label: 상호, type: string }
+      - { name: since, label: 연도 표기, type: string }
+      - { name: slogan, label: 슬로건, type: string }
+      - { name: representative, label: 대표, type: string }
+      - { name: broker, label: 담당 공인중개사, type: string }
+      - { name: broker_title, label: 담당자 직책, type: string }
+      - { name: phone, label: 대표번호, type: string }
+      - { name: mobile, label: 휴대전화 (표시용), type: string }
+      - { name: sms_number, label: 상담 문자 받을 번호 (숫자만), type: string }
+      - { name: hours, label: 영업시간, type: string }
+      - { name: address, label: 주소, type: string }
+      - { name: registration_no, label: 중개사무소 등록번호, type: string }
+      - { name: business_no, label: 사업자등록번호, type: string }
+      - { name: email, label: 개인정보 문의 이메일, type: string }
+      - { name: privacy_officer, label: 개인정보 보호책임자, type: string }
+      - { name: form_endpoint, label: 상담 접수 주소 (Apps Script 웹 앱 URL), type: string }
+      - { name: privacy_retention, label: 상담 정보 보유 기간 (Apps Script와 같게), type: string }
+      - { name: consent_version, label: 동의 문구 버전 (Apps Script와 같게), type: string }
+      - { name: logo, label: 로고, type: image }
+      - { name: emblem, label: 골드 R 엠블럼, type: image }
+
+  - name: home
+    label: 메인 페이지
+    type: file
+    path: content/home.json
+    fields:
+      - { name: hero_eyebrow, label: 첫 화면 위 작은 문구, type: string }
+      - { name: hero_title, label: 첫 화면 큰 제목 (줄마다 한 칸), type: string, list: true }
+      - { name: hero_lead, label: 첫 화면 설명, type: text }
+      - { name: marquee, label: 흐르는 띠 문구, type: string }
+      - { name: host_title, label: 소개 제목, type: text }
+      - { name: host_text, label: 소개 글, type: text }
+      - { name: host_image, label: 소개 큰 사진, type: image }
+      - { name: host_image_alt, label: 소개 큰 사진 설명, type: string }
+      - { name: office_image, label: 소개 작은 사진, type: image }
+      - { name: office_image_alt, label: 소개 작은 사진 설명, type: string }
+      - name: facts
+        label: 숫자 표기
+        type: object
+        list: true
+        fields:
+          - { name: value, label: 큰 글자, type: string }
+          - { name: label, label: 설명, type: string }
+      - { name: belief, label: 신념 문장, type: text }
+
+  - name: about
+    label: 회사소개
+    type: file
+    path: content/about.json
+    fields:
+      - { name: title, label: 제목, type: text }
+      - { name: lead, label: 설명, type: text }
+      - { name: history_title, label: 역사 제목, type: string }
+      - { name: history_text, label: 역사 글 (빈 줄로 문단 구분), type: text }
+      - { name: history_image, label: 역사 사진, type: image }
+      - { name: history_image_alt, label: 역사 사진 설명, type: string }
+      - name: methods
+        label: 중개 방식
+        type: object
+        list: true
+        fields:
+          - { name: title, label: 제목, type: string }
+          - { name: text, label: 설명, type: text }
+      - { name: profile_title, label: 담당자 제목, type: string }
+      - { name: profile_text, label: 담당자 소개, type: text }
+      - { name: profile_image, label: 담당자 사진 (기존 홍보 이미지만), type: image }
+      - { name: profile_image_alt, label: 담당자 사진 설명, type: string }
+
+  - name: services
+    label: 중개 서비스 (프로그램)
+    type: file
+    path: content/services.json
+    fields:
+      - { name: title, label: 제목, type: text }
+      - { name: lead, label: 설명, type: text }
+      - name: items
+        label: 서비스 목록
+        type: object
+        list: true
+        fields:
+          - { name: key, label: 영문 키 (문의 분야 연결용, 바꾸지 마세요), type: string }
+          - { name: name, label: 서비스 이름, type: string }
+          - { name: who, label: 누가 이용하나요, type: text }
+          - { name: checks, label: 확인하는 조건, type: string, list: true }
+          - { name: tell, label: 상담할 때 알려주세요, type: text }
+          - { name: image, label: 사진 (선택), type: image }
+
+  - name: consulting
+    label: 상권·계약 컨설팅
+    type: file
+    path: content/consulting.json
+    fields:
+      - { name: title, label: 제목, type: text }
+      - { name: lead, label: 설명, type: text }
+      - name: steps
+        label: 진행 순서
+        type: object
+        list: true
+        fields:
+          - { name: title, label: 단계 이름, type: string }
+          - { name: text, label: 설명, type: text }
+      - name: compare
+        label: 비교 항목
+        type: object
+        list: true
+        fields:
+          - { name: item, label: 항목, type: string }
+          - { name: how, label: 무엇을 보나요, type: text }
+      - { name: aftercare_title, label: 입점 후 제목, type: string }
+      - { name: aftercare_text, label: 입점 후 설명, type: text }
+      - { name: aftercare_points, label: 입점 후 도움 목록, type: string, list: true }
+      - { name: renewal_title, label: 재계약 제목, type: string }
+      - { name: renewal_text, label: 재계약 설명, type: text }
+
+  - name: projects
+    label: 매물·중개 사례 (실적)
+    type: file
+    path: content/projects.json
+    fields:
+      - name: items
+        label: 사례 목록
+        type: object
+        list: true
+        fields:
+          - { name: slug, label: 주소용 영문 이름 (예 sinsa-clinic), type: string }
+          - { name: published, label: 사이트에 공개, type: boolean }
+          - name: type
+            label: 분류
+            type: select
+            options:
+              values:
+                - { value: shop, label: 상가 }
+                - { value: office, label: 사무실 }
+                - { value: clinic, label: 병의원 }
+          - { name: title, label: 제목, type: string }
+          - { name: summary, label: 요약, type: text }
+          - { name: cover, label: 대표 사진, type: image }
+          - { name: poster, label: 매물 포스터, type: image }
+          - { name: gallery, label: 추가 사진, type: image, list: true }
+          - name: conditions
+            label: 당시 검토 조건
+            type: object
+            list: true
+            fields:
+              - { name: label, label: 항목, type: string }
+              - { name: value, label: 내용 (비우면 '기재 예정'), type: string }
+          - { name: basis_note, label: 기준 안내 문구, type: text }
+          - { name: checkpoints, label: 현장에서 살펴볼 포인트, type: string, list: true }
+
+  - name: insights
+    label: 상권 인사이트 (글)
+    type: file
+    path: content/insights.json
+    fields:
+      - name: items
+        label: 글 목록
+        type: object
+        list: true
+        fields:
+          - { name: slug, label: 주소용 영문 이름, type: string }
+          - { name: published, label: 사이트에 공개, type: boolean }
+          - { name: category, label: 분류, type: string }
+          - { name: title, label: 제목, type: string }
+          - { name: summary, label: 요약, type: text }
+          - { name: date, label: 작성일, type: date }
+          - { name: cover, label: 대표 사진 (선택), type: image }
+          - name: body
+            label: 본문
+            type: rich-text
+            options:
+              format: html
+          - name: sources
+            label: 수치 출처 (수치를 썼다면 필수)
+            type: object
+            list: true
+            fields:
+              - { name: name, label: 출처 이름, type: string }
+              - { name: url, label: 링크, type: string }
+              - { name: as_of, label: 기준 시점, type: string }
